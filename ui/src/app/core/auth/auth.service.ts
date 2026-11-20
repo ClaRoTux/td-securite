@@ -1,4 +1,8 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { inject, Injectable, signal } from '@angular/core';
+import { API } from '../api/banque';
+import { firstValueFrom } from 'rxjs';
+import { Login } from '../../features/login/login';
 
 export interface Utilisateur {
   readonly login: string;
@@ -11,18 +15,38 @@ export interface Utilisateur {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   readonly utilisateur = signal<Utilisateur | null>(null);
+  readonly http = inject(HttpClient);
+  private login?:String;
+  private password?:String;  
 
   /**
    * Vérifie les identifiants auprès du serveur (GET /api/me avec l'en-tête
    * Basic) et mémorise l'utilisateur. Doit échouer (throw) si le serveur répond 401.
    */
   async connecter(login: string, motDePasse: string): Promise<void> {
-    // TODO : appeler /api/me, retenir les identifiants pour l'intercepteur,
-    // puis renseigner `utilisateur`.
-    throw new Error('Pas encore implémenté');
+    this.login=login;
+    this.password=motDePasse;
+    return firstValueFrom(this.http.get<void>(`${API}/me`))
+    //throw new Error('Pas encore implémenté');
   }
 
   deconnecter(): void {
     // TODO : oublier les identifiants et l'utilisateur.
   }
+
+  basic(): string | undefined {
+      if (this.login && this.password){
+      return btoa(this.login+":"+this.password);
+      }
+      return undefined;
+    }
+    
+    estConnecte(){
+      try {
+        return true;
+      }
+      catch{
+        return false;
+      }
+    }
 }
